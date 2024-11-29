@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM golang:1.23
 
 COPY linkly /linkly
 WORKDIR /
