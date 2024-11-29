@@ -19,6 +19,7 @@ var (
 	authToken           = envflag.String("DISCORD_AUTH_TOKEN", "", "Discord auth token")
 	spotifyClientID     = envflag.String("SPOTIFY_ID", "", "Spotify api client ID")
 	spotifyClientSecret = envflag.String("SPOTIFY_SECRET", "", "Spotify api client secret")
+	youtubeAPIKey       = envflag.String("YOUTUBE_API_KEY", "", "Youtube/Google Cloud API key")
 )
 
 func main() {
@@ -43,7 +44,7 @@ func main() {
 
 	httpClient := spotifyauth.New().Client(ctx, token)
 	spotifyClient := spotify.New(httpClient)
-	spotifyHandler := handlers.NewSpotifyHandler(ctx, spotifyClient)
+	spotifyHandler := handlers.NewSpotifyHandler(ctx, spotifyClient, *youtubeAPIKey)
 	hm := handlers.HandleManager{Handlers: map[string]handlers.Handler{"open.spotify.com": spotifyHandler}}
 
 	ss := server.NewServer(discord, &hm)
