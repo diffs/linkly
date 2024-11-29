@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/sirupsen/logrus"
 	"linkly/handlers"
@@ -52,7 +51,6 @@ func (s *server) messageCreate(sess *discordgo.Session, m *discordgo.MessageCrea
 		return
 	}
 
-	fmt.Println(m.Content)
 	// Check if the message content matches the URL pattern
 	if linkDetection.MatchString(m.Content) {
 		if response := s.handler.HandleLink(m.Content); response != nil {
