@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"linkly/handlers/utils"
 	"strings"
 
@@ -28,6 +29,7 @@ func (s SpotifyHandler) HandleLink(link string) *discordgo.MessageSend {
 	trackID := strings.Split(splat[len(splat)-1], "?")[0]
 	track, err := s.client.GetTrack(s.ctx, spotify.ID(trackID))
 	if err != nil {
+		fmt.Println(err.Error())
 		return nil
 	}
 

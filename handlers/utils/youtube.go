@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 )
 
@@ -33,6 +34,7 @@ func QueryYoutube(query, apiKey string) (*YoutubeSearchResults, error) {
 	// Create the request
 	req, err := http.NewRequest("GET", "https://www.googleapis.com/youtube/v3/search", nil)
 	if err != nil {
+		fmt.Println(err.Error())
 		return nil, err
 	}
 
@@ -46,6 +48,7 @@ func QueryYoutube(query, apiKey string) (*YoutubeSearchResults, error) {
 	// Send the request
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
+		fmt.Println(err.Error())
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -54,6 +57,7 @@ func QueryYoutube(query, apiKey string) (*YoutubeSearchResults, error) {
 	var results YoutubeSearchResults
 	err = json.NewDecoder(resp.Body).Decode(&results)
 	if err != nil {
+		fmt.Println(err.Error())
 		return nil, err
 	}
 
