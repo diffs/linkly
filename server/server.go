@@ -29,7 +29,7 @@ func NewServer(session *discordgo.Session, handler handlers.Handler) Server {
 
 func (s *server) Start() error {
 	s.session.AddHandler(s.messageCreate)
-
+	s.session.ShouldReconnectOnError = true
 	s.session.Identify.Intents = discordgo.IntentsGuildMessages
 
 	// Open a websocket connection to Discord and begin listening.
