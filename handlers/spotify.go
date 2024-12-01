@@ -3,30 +3,45 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"golang.org/x/oauth2/clientcredentials"
 	"linkly/handlers/utils"
 	"strings"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/zmb3/spotify/v2"
+	spotifyauth "github.com/zmb3/spotify/v2/auth"
 )
 
+const spotifyTokenExpiry = time.Hour
+
 type SpotifyHandler struct {
+	lastCall      time.Time
 	client        *spotify.Client
+	spotifyCreds  clientcredentials.Config
 	ctx           context.Context
 	youtubeAPIKey string
 }
 
-func NewSpotifyHandler(ctx context.Context, client *spotify.Client, youtubeAPIKey string) Handler {
-	return &SpotifyHandler{client: client, ctx: ctx, youtubeAPIKey: youtubeAPIKey}
+func NewSpotifyHandler(ctx context.Context, spotifyCreds clientcredentials.Config, youtubeAPIKey string) Handler {
+	return &SpotifyHandler{ctx: ctx, youtubeAPIKey: youtubeAPIKey, lastCall: time.Now(), spotifyCreds: spotifyCreds}
 }
 
-func (s SpotifyHandler) HandleLink(link string) *discordgo.MessageSend {
+func (s *SpotifyHandler) HandleLink(link string) *discordgo.MessageSend {
 	if !strings.Contains(link, "/track/") {
 		return nil
 	}
 	splat := strings.Split(link, "/")
 
 	trackID := strings.Split(splat[len(splat)-1], "?")[0]
+	if s.client == nil || s.isSpotifyClientTokenExpired() {
+		fmt.Println("renewing token...")
+		if err := s.renewSpotifyClient(); err != nil {
+			fmt.Println("error renewing token: " + err.Error())
+			return nil
+		}
+	}
+
 	track, err := s.client.GetTrack(s.ctx, spotify.ID(trackID))
 	if err != nil {
 		fmt.Println(err.Error())
@@ -75,4 +90,19 @@ func (s SpotifyHandler) HandleLink(link string) *discordgo.MessageSend {
 	return &discordgo.MessageSend{
 		Embed: embed,
 	}
+}
+
+func (s *SpotifyHandler) isSpotifyClientTokenExpired() bool {
+	return time.Now().After(s.lastCall.Add(spotifyTokenExpiry))
+}
+
+func (s *SpotifyHandler) renewSpotifyClient() error {
+	newToken, err := s.spotifyCreds.Token(s.ctx)
+	if err != nil {
+		return err
+	}
+
+	s.client = spotify.New(spotifyauth.New().Client(s.ctx, newToken))
+	s.lastCall = time.Now()
+	return nil
 }

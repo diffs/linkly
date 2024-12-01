@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/ianschenck/envflag"
-	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2/clientcredentials"
 	"linkly/handlers"
@@ -32,19 +31,13 @@ func main() {
 
 	ctx := context.Background()
 
-	config := &clientcredentials.Config{
+	spotifyCreds := clientcredentials.Config{
 		ClientID:     *spotifyClientID,
 		ClientSecret: *spotifyClientSecret,
 		TokenURL:     spotifyauth.TokenURL,
 	}
-	token, err := config.Token(ctx)
-	if err != nil {
-		panic(err)
-	}
 
-	httpClient := spotifyauth.New().Client(ctx, token)
-	spotifyClient := spotify.New(httpClient)
-	spotifyHandler := handlers.NewSpotifyHandler(ctx, spotifyClient, *youtubeAPIKey)
+	spotifyHandler := handlers.NewSpotifyHandler(ctx, spotifyCreds, *youtubeAPIKey)
 	hm := handlers.HandleManager{Handlers: map[string]handlers.Handler{"open.spotify.com": spotifyHandler}}
 
 	ss := server.NewServer(discord, &hm)
